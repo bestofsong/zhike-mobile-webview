@@ -1,0 +1,34 @@
+{
+  "name": "zhike-mobile-webview",
+  "version": "1.0.0",
+  "description": "webview with several hocs customizing link handling",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "prop-types": "^15.0.0",
+    "urijs": "^1.19.0"
+  },
+  "peerDependencies": {
+    "react-native": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bestofsong/zhike-mobile-webview.git"
+  },
+  "keywords": [
+    "react-native",
+    "rn",
+    "webview",
+    "js",
+    "callback",
+    "jsbridge"
+  ],
+  "author": "wansong",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bestofsong/zhike-mobile-webview/issues"
+  },
+  "homepage": "https://github.com/bestofsong/zhike-mobile-webview#readme"
+}
