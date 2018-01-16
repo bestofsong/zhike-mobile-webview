@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform, WebView } from 'react-native';
 import PropTypes from 'prop-types';
-import withAppStoreLinking from './withAppStoreLinking';
+import withDeepLink from './withDeepLink';
 import withJsBridge from './withJsBridge';
 import withQuery from './withQuery';
 import withNavigate from './withNavigate';
@@ -53,7 +53,7 @@ const copyProps = WrappedWebView => class extends React.Component {
 };
 /* eslint-enable */
 
-const baseHocs = [copyProps, withJsBridge, withQuery, withAppStoreLinking, withNavigate];
+const baseHocs = [copyProps, withJsBridge, withQuery, withDeepLink, withNavigate];
 
 export const withExtra = (...hocs) => {
   return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WebViewWithRef);

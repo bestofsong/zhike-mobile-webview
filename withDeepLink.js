@@ -22,12 +22,19 @@ export default WrappedWebView => class extends React.Component {
 
     const uri = URI(url);
     const host = uri.host();
+    const scheme = uri.scheme();
     const path = uri.path();
     const idStr = /id\d+$/;
 
     if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
       Linking.openURL(url);
       callbackToWebpage(url, { code: 0 });
+      return false;
+    }
+
+    if (scheme === 'mobile' && host === 'share') {
+      console.log('share info: ', uri.search(true));
+      callbackToWebpage(url, { code: -1, msg: 'failed to share' });
       return false;
     }
 
