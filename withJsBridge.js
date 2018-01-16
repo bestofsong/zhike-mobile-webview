@@ -11,31 +11,24 @@ function injectedJsCode() {
 
     window.messageHandler = e => {
       var msg = e.data;
-      setTimeout(() => alert("callback: " + msg), 100);
       if (typeof msg !== 'string' || !msg.length) {
-        setTimeout(() => alert("wrong: " + msg), 100);
         return;
       }
       var dividerPos = msg.indexOf(':');
       if (dividerPos === -1) {
-        setTimeout(() => alert("wrong: " + msg), 100);
         return;
       }
       var callbackName = msg.substr(0, dividerPos);
       if (typeof callbackName !== 'string' || !callbackName.length) {
-        setTimeout(() => alert("wrong: " + msg), 100);
         return;
       }
       var paramsJson = msg.substr(dividerPos + 1);
       if (typeof paramsJson !== 'string' || !paramsJson.length) {
-        setTimeout(() => alert("wrong: " + msg), 100);
         return;
       }
       var methods = window.__ZHIKE_CALLBACKS__;
       var method = methods && methods[callbackName];
-      if (typeof method !== 'function') {
-        setTimeout(() => alert("method not function: " + msg), 100);
-      } else {
+      if (typeof method === 'function') {
         method(paramsJson);
       }
     }

@@ -1,6 +1,6 @@
 {
   "name": "zhike-mobile-webview",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "webview with several hocs customizing link handling",
   "main": "index.js",
   "scripts": {

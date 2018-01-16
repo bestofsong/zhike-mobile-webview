@@ -15,7 +15,7 @@ export default WrappedWebView => class extends React.Component {
     handleDeepLink: () => Promise.resolve(),
   };
 
-  async onShouldStartLoadWithRequest(req) {
+  onShouldStartLoadWithRequest(req) {
     const { callbackToWebpage, handleDeepLink, onShouldStartLoadWithRequest } = this.props;
     const { url } = req || {};
     if (!url) {
@@ -30,21 +30,25 @@ export default WrappedWebView => class extends React.Component {
     const httpx = /(^http)|(^https)/;
     const query = uri.search(true);
 
+    console.log('onShouldStartLoadWithRequest: ', scheme, host, path, query);
+
     if (httpx.test(url)) {
       if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
         Linking.openURL(url);
         callbackToWebpage(url, { code: 0 });
+        console.log('app store linking');
         return false;
       }
     }
 
     if (scheme === 'mobile') {
-      try {
-        const resp = await Promise.resolve(handleDeepLink({ scheme, method, query }));
+      Promise.resolve(handleDeepLink({ scheme, method: host, query }))
+      .then((resp) => {
         callbackToWebpage(url, resp);
-      } catch (e) {
+      })
+      .catch((e) => {
         callbackToWebpage(url, e);
-      }
+      });
       return false;
     }
 
