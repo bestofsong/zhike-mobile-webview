@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import withDeepLink from './withDeepLink';
 import withJsBridge from './withJsBridge';
 import withQuery from './withQuery';
-import withNavigate from './withNavigate';
 
 class WebViewWithRef extends React.Component {
   static propTypes = {
@@ -16,6 +15,7 @@ class WebViewWithRef extends React.Component {
       appVersion: PropTypes.string.isRequired,
       appType: PropTypes.string,
     }),
+    handleDeepLink: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -53,7 +53,7 @@ const copyProps = WrappedWebView => class extends React.Component {
 };
 /* eslint-enable */
 
-const baseHocs = [copyProps, withJsBridge, withQuery, withDeepLink, withNavigate];
+const baseHocs = [copyProps, withJsBridge, withQuery, withDeepLink];
 
 export const withExtra = (...hocs) => {
   return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WebViewWithRef);

@@ -6,15 +6,17 @@ import PropTypes from 'prop-types';
 export default WrappedWebView => class extends React.Component {
   static propTypes = {
     callbackToWebpage: PropTypes.func.isRequired,
+    handleDeepLink: PropTypes.func,
     onShouldStartLoadWithRequest: PropTypes.func,
   };
 
   static defaultProps = {
     onShouldStartLoadWithRequest: () => true,
+    handleDeepLink: () => Promise.resolve(),
   };
 
-  onShouldStartLoadWithRequest(req) {
-    const { callbackToWebpage, onShouldStartLoadWithRequest } = this.props;
+  async onShouldStartLoadWithRequest(req) {
+    const { callbackToWebpage, handleDeepLink, onShouldStartLoadWithRequest } = this.props;
     const { url } = req || {};
     if (!url) {
       return false;
@@ -25,16 +27,24 @@ export default WrappedWebView => class extends React.Component {
     const scheme = uri.scheme();
     const path = uri.path();
     const idStr = /id\d+$/;
+    const httpx = /(^http)|(^https)/;
+    const query = uri.search(true);
 
-    if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
-      Linking.openURL(url);
-      callbackToWebpage(url, { code: 0 });
-      return false;
+    if (httpx.test(url)) {
+      if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
+        Linking.openURL(url);
+        callbackToWebpage(url, { code: 0 });
+        return false;
+      }
     }
 
-    if (scheme === 'mobile' && host === 'share') {
-      console.log('share info: ', uri.search(true));
-      callbackToWebpage(url, { code: -1, msg: 'failed to share' });
+    if (scheme === 'mobile') {
+      try {
+        const resp = await Promise.resolve(handleDeepLink({ scheme, method, query }));
+        callbackToWebpage(url, resp);
+      } catch (e) {
+        callbackToWebpage(url, e);
+      }
       return false;
     }
 
