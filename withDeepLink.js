@@ -30,25 +30,28 @@ export default WrappedWebView => class extends React.Component {
     const httpx = /(^http)|(^https)/;
     const query = uri.search(true);
 
-    console.log('onShouldStartLoadWithRequest: ', scheme, host, path, query);
-
     if (httpx.test(url)) {
       if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
         Linking.openURL(url);
         callbackToWebpage(url, { code: 0 });
-        console.log('app store linking');
         return false;
       }
+
+      return true;
     }
 
     if (scheme === 'mobile') {
       Promise.resolve(handleDeepLink({ scheme, method: host, query }))
-      .then((resp) => {
-        callbackToWebpage(url, resp);
-      })
-      .catch((e) => {
-        callbackToWebpage(url, e);
-      });
+        .then((resp) => {
+          try {
+            callbackToWebpage(url, resp);
+          } catch (e) {
+            console.error(e);
+          }
+        })
+        .catch((e) => {
+          callbackToWebpage(url, e);
+        });
       return false;
     }
 
