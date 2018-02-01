@@ -31,6 +31,11 @@ function injectedJsCode() {
       if (typeof method === 'function') {
         method(paramsJson);
       }
+
+      var method2 = window[callbackName];
+      if (typeof method2 === 'function') {
+        method2(paramsJson);
+      }
     }
     document.addEventListener('message', window.messageHandler);
   })();
