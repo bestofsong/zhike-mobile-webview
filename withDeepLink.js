@@ -8,6 +8,7 @@ export default WrappedWebView => class extends React.Component {
     callbackToWebpage: PropTypes.func.isRequired,
     handleDeepLink: PropTypes.func,
     onShouldStartLoadWithRequest: PropTypes.func,
+    postMessageToWebpage: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -62,11 +63,28 @@ export default WrappedWebView => class extends React.Component {
     return true;
   }
 
+  onMessage(e) {
+    const { postMessageToWebpage, handleDeepLink } = this.props;
+    const { data } = e.nativeEvent;
+    let req = {};
+    try {
+      req = JSON.parse(data);
+      Promise.resolve(handleDeepLink(req))
+        .catch(e => e)
+        .then((resp) => {
+          postMessageToWebpage(req, resp);
+        });
+    } catch (e) {
+      postMessageToWebpage(req, e);
+    }
+  }
+
   render() {
     return (
       <WrappedWebView
         {...this.props}
         onShouldStartLoadWithRequest={req => this.onShouldStartLoadWithRequest(req)}
+        onMessage={e => this.onMessage(e)}
       />
     );
   }

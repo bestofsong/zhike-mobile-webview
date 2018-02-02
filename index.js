@@ -10,7 +10,7 @@ class WebViewWithRef extends React.Component {
     getWebView: PropTypes.string.isRequired,
     query: PropTypes.shape({
       token: PropTypes.string,
-      userId: PropTypes.oneOfType(PropTypes.string, PropTypes.number),
+      userId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       appName: PropTypes.string.isRequired,
       appVersion: PropTypes.string.isRequired,
       appType: PropTypes.string,
