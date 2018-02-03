@@ -181,6 +181,7 @@ export default WrappedWebView => class extends React.Component {
         {...this.props}
         getWebView={(ref) => { this.webView = ref; }}
         injectedJavaScript={`${injectedJsCode()}; ${this.props.injectedJavaScript || ''}`}
+        javaScriptEnabled
         callbackToWebpage={(url, data) => this.callbackToWebpage(url, data)}
         postMessageToWebpage={(req, resp) => this.postMessageToWebpage(req, resp)}
       />
