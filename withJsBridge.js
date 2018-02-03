@@ -2,13 +2,13 @@ import React from 'react';
 import URI from 'urijs';
 import PropTypes from 'prop-types';
 
-const addMessageHandler = `
-(function() {
+// note: line 11, cannot assign function expression to window directly in one expression
+const addMessageHandler = `(function addMessageHandler() {
   if (window.messageHandler) {
     return;
   }
 
-  window.messageHandler = e => {
+  function messageHandler(e) {
     var msg = e.data;
     if (typeof msg !== 'string' || !msg.length) {
       return;
@@ -38,27 +38,18 @@ const addMessageHandler = `
       delete window[callbackName]
     }
 
-    var method3 = window.SS_PROMISE_SUPPORT_CALLBACKS[callbackName];
+    var method3 = window.SS_PROMISE_SUPPORT_CALLBACKS && window.SS_PROMISE_SUPPORT_CALLBACKS[callbackName];
     if (typeof method3 === 'function') {
       method3(paramsJson);
       delete window.SS_PROMISE_SUPPORT_CALLBACKS[callbackName];
     }
   }
+  window.messageHandler = messageHandler;
   document.addEventListener('message', window.messageHandler);
 })();
 `;
 
-const patchPostMessageJsCode = `(function patchPostMessageFunction(){
-  var originalPostMessage=window.postMessage;
-  var patchedPostMessage=function patchedPostMessage(message,targetOrigin,transfer){
-    originalPostMessage(message,targetOrigin,transfer);
-  };
-  patchedPostMessage.toString=function(){
-    return String(Object.hasOwnProperty).replace("hasOwnProperty","postMessage");
-  };
-  window.postMessage=patchedPostMessage;
-})();
-`;
+const patchPostMessageJsCode = '(function patchPostMessageFunction(){var originalPostMessage=window.postMessage;var patchedPostMessage=function patchedPostMessage(message,targetOrigin,transfer){originalPostMessage(message,targetOrigin,transfer)};patchedPostMessage.toString=function(){return String(Object.hasOwnProperty).replace("hasOwnProperty","postMessage")};window.postMessage=patchedPostMessage})();';
 
 const addPromisify = `(function addPromiseSupport() {
   if (window.SS_PROMISE_SUPPORT_CALLBACKS) {
@@ -94,20 +85,17 @@ const addPromisify = `(function addPromiseSupport() {
     }
   }
 
-  var originalPostMessage = window.postMessage;
   var postMessageAsync = function postMessageAsync(message, targetOrigin, transfer){
     var messageAndUUID = addUUID(message);
     if (!originalPostMessage) {
       return Promise.reject('postMessage not setup properly');
     }
 
-    setTimeout(() => originalPostMessage(messageAndUUID.message, targetOrigin, transfer), 0);
-
     var uuid = messageAndUUID.uuid;
     if (!uuid) {
       return Promise.reject(messageAndUUID.error);
     }
-    return new Promise((resolve, reject) => {
+    var ret = new Promise((resolve, reject) => {
       window.SS_PROMISE_SUPPORT_CALLBACKS[uuid] = function uuidCallback(bodyJson) {
         var body;
         try {
@@ -122,6 +110,9 @@ const addPromisify = `(function addPromiseSupport() {
         }
       };
     });
+
+    window.postMessage(messageAndUUID.message, targetOrigin, transfer);
+    return ret;
   };
   postMessageAsync.toString = function() {
     return String(Object.hasOwnProperty).replace("hasOwnProperty", "postMessageAsync");
@@ -132,7 +123,7 @@ const addPromisify = `(function addPromiseSupport() {
 `;
 
 function injectedJsCode() {
-  return `${addMessageHandler}${patchPostMessageJsCode}${addPromisify}`;
+  return `${addMessageHandler}${patchPostMessageJsCode}${addPromisify};`;
 }
 
 
@@ -175,13 +166,15 @@ export default WrappedWebView => class extends React.Component {
     this.webView.postMessage(`${callbackName}:${JSON.stringify(resp)}`);
   }
 
+
   render() {
     return (
       <WrappedWebView
         {...this.props}
         getWebView={(ref) => { this.webView = ref; }}
-        injectedJavaScript={`${injectedJsCode()}; ${this.props.injectedJavaScript || ''}`}
+        injectedJavaScript={`${injectedJsCode()};${this.props.injectedJavaScript || ''}`}
         javaScriptEnabled
+        domStorageEnabled
         callbackToWebpage={(url, data) => this.callbackToWebpage(url, data)}
         postMessageToWebpage={(req, resp) => this.postMessageToWebpage(req, resp)}
       />
