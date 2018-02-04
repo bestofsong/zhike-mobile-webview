@@ -55,7 +55,6 @@ const addPromisify = `(function addPromiseSupport() {
   if (window.SS_PROMISE_SUPPORT_CALLBACKS) {
     return;
   }
-
   window.SS_PROMISE_SUPPORT_CALLBACKS = {};
 
   function uuidv4() {
@@ -65,36 +64,8 @@ const addPromisify = `(function addPromiseSupport() {
     });
   }
 
-  function addUUID(message) {
-    var message_ = message;
-    var ret;
-    var messageObj;
-    var callbackName;
-    var uuid = uuidv4();
-    try {
-      messageObj = JSON.parse(message);
-      if (!messageObj || typeof messageObj !== 'object' || typeof messageObj.type !== 'string') {
-        return { message, error: 'message type invalid' };
-      }
-      messageObj.SS_CALLBACK_NAME = uuid;
-      ret = JSON.stringify(messageObj);
-      return { message: ret, uuid };
-    } catch (e) {
-      console.error('failed to JSON.parse message: ', e);
-      return { message, error: e };
-    }
-  }
-
   var postMessageAsync = function postMessageAsync(message, targetOrigin, transfer){
-    var messageAndUUID = addUUID(message);
-    if (!originalPostMessage) {
-      return Promise.reject('postMessage not setup properly');
-    }
-
-    var uuid = messageAndUUID.uuid;
-    if (!uuid) {
-      return Promise.reject(messageAndUUID.error);
-    }
+    var uuid = uuidv4();
     var ret = new Promise((resolve, reject) => {
       window.SS_PROMISE_SUPPORT_CALLBACKS[uuid] = function uuidCallback(bodyJson) {
         var body;
@@ -111,7 +82,7 @@ const addPromisify = `(function addPromiseSupport() {
       };
     });
 
-    window.postMessage(messageAndUUID.message, targetOrigin, transfer);
+    window.postMessage('id' + uuid + 'id' + message, targetOrigin, transfer);
     return ret;
   };
   postMessageAsync.toString = function() {
@@ -130,11 +101,46 @@ function injectedJsCode() {
 export default WrappedWebView => class extends React.Component {
   static propTypes = {
     injectedJavaScript: PropTypes.string,
+    javaScriptEnabled: PropTypes.bool,
+    domStorageEnabled: PropTypes.bool,
   };
 
   static defaultProps = {
     injectedJavaScript: '',
+    javaScriptEnabled: true,
+    domStorageEnabled: true,
   };
+
+  static WEB_MASSAGE_REG = new RegExp('^id(.*?)id(.+)$');
+
+  static parseWebMessage(msg) {
+    if (typeof msg !== 'string' || !msg.length) {
+      return null;
+    }
+    const mt = msg.match(this.WEB_MASSAGE_REG);
+    if (!mt) {
+      return null;
+    }
+
+    const prefix = mt[1];
+    const bodyStr = mt[2];
+
+    if (!bodyStr) {
+      return null;
+    }
+
+    let body = {};
+    try {
+      body = JSON.parse(bodyStr);
+    } catch (e) {
+      console.error('json parse e: ', e);
+    }
+
+    return {
+      body,
+      callbackName: mt[1],
+    };
+  }
 
   callbackToWebpage(url, data) {
     if (!this.webView) {
@@ -158,7 +164,7 @@ export default WrappedWebView => class extends React.Component {
       return;
     }
 
-    const { SS_CALLBACK_NAME: callbackName } = req;
+    const { callbackName } = req;
     if (!callbackName) {
       console.warn(`req: ${req} has no callbackName, cannot callback`);
       return;
@@ -166,6 +172,24 @@ export default WrappedWebView => class extends React.Component {
     this.webView.postMessage(`${callbackName}:${JSON.stringify(resp)}`);
   }
 
+  onMessage(e) {
+    const { postMessageToWebpage, handleDeepLink, onMessage } = this.props;
+    if (onMessage) {
+      onMessage(e);
+    }
+
+    const { data } = e.nativeEvent;
+    const req = this.constructor.parseWebMessage(data);
+    if (!req) {
+      return;
+    }
+    const { body } = req;
+    Promise.resolve(handleDeepLink(body))
+      .catch(e => e)
+      .then((resp) => {
+        postMessageToWebpage(req, resp);
+      });
+  }
 
   render() {
     return (
@@ -173,10 +197,9 @@ export default WrappedWebView => class extends React.Component {
         {...this.props}
         getWebView={(ref) => { this.webView = ref; }}
         injectedJavaScript={`${injectedJsCode()};${this.props.injectedJavaScript || ''}`}
-        javaScriptEnabled
-        domStorageEnabled
         callbackToWebpage={(url, data) => this.callbackToWebpage(url, data)}
         postMessageToWebpage={(req, resp) => this.postMessageToWebpage(req, resp)}
+        onMessage={e => this.onMessage(e)}
       />
     );
   }
