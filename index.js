@@ -15,7 +15,7 @@ class WebViewWithRef extends React.Component {
       appVersion: PropTypes.string.isRequired,
       appType: PropTypes.string,
     }),
-    handleDeepLink: PropTypes.func.isRequired,
+    onWebRequest: PropTypes.func.isRequired,
   };
 
   static defaultProps = {

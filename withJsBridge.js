@@ -1,5 +1,4 @@
 import React from 'react';
-import URI from 'urijs';
 import PropTypes from 'prop-types';
 
 // note: line 11, cannot assign function expression to window directly in one expression
@@ -103,12 +102,16 @@ export default WrappedWebView => class extends React.Component {
     injectedJavaScript: PropTypes.string,
     javaScriptEnabled: PropTypes.bool,
     domStorageEnabled: PropTypes.bool,
+    onMessage: PropTypes.func,
+    onWebRequest: PropTypes.func,
   };
 
   static defaultProps = {
     injectedJavaScript: '',
     javaScriptEnabled: true,
     domStorageEnabled: true,
+    onWebRequest: () => Promise.resolve({}),
+    onMessage: () => {},
   };
 
   static WEB_MASSAGE_REG = new RegExp('^id(.*?)id(.+)$');
@@ -138,42 +141,25 @@ export default WrappedWebView => class extends React.Component {
 
     return {
       body,
-      callbackName: mt[1],
+      callbackName: prefix,
     };
   }
 
-  callbackToWebpage(url, data) {
+  callbackToWebpage(callbackName, data) {
     if (!this.webView) {
-      console.error();
+      console.error('no webView?');
       return;
     }
 
-    const uri = URI(url);
-    const query = uri.search(true);
-    const callbackName = query && query.callback_name;
     if (!callbackName) {
-      console.error(`url: ${url} has no callbackName, cannot callback`);
+      console.error('no callbackName, cannot callback');
       return;
     }
     this.webView.postMessage(`${callbackName}:${JSON.stringify(data)}`);
   }
 
-  postMessageToWebpage(req, resp) {
-    if (!this.webView) {
-      console.error('no WebView?');
-      return;
-    }
-
-    const { callbackName } = req;
-    if (!callbackName) {
-      console.warn(`req: ${req} has no callbackName, cannot callback`);
-      return;
-    }
-    this.webView.postMessage(`${callbackName}:${JSON.stringify(resp)}`);
-  }
-
   onMessage(e) {
-    const { postMessageToWebpage, handleDeepLink, onMessage } = this.props;
+    const { onWebRequest, onMessage } = this.props;
     if (onMessage) {
       onMessage(e);
     }
@@ -183,11 +169,12 @@ export default WrappedWebView => class extends React.Component {
     if (!req) {
       return;
     }
-    const { body } = req;
-    Promise.resolve(handleDeepLink(body))
+    const { callbackName, body } = req;
+    Promise.resolve(onWebRequest(body))
       .catch(e => e)
       .then((resp) => {
-        postMessageToWebpage(req, resp);
+        if (!callbackName) return;
+        this.callbackToWebpage(callbackName, resp);
       });
   }
 
@@ -197,8 +184,7 @@ export default WrappedWebView => class extends React.Component {
         {...this.props}
         getWebView={(ref) => { this.webView = ref; }}
         injectedJavaScript={`${injectedJsCode()};${this.props.injectedJavaScript || ''}`}
-        callbackToWebpage={(url, data) => this.callbackToWebpage(url, data)}
-        postMessageToWebpage={(req, resp) => this.postMessageToWebpage(req, resp)}
+        callbackToWebpage={(callbackName, data) => this.callbackToWebpage(callbackName, data)}
         onMessage={e => this.onMessage(e)}
       />
     );

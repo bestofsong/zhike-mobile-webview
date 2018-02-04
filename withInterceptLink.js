@@ -6,18 +6,17 @@ import PropTypes from 'prop-types';
 export default WrappedWebView => class extends React.Component {
   static propTypes = {
     callbackToWebpage: PropTypes.func.isRequired,
-    handleDeepLink: PropTypes.func,
+    onWebRequest: PropTypes.func,
     onShouldStartLoadWithRequest: PropTypes.func,
-    postMessageToWebpage: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
     onShouldStartLoadWithRequest: () => true,
-    handleDeepLink: () => Promise.resolve(),
+    onWebRequest: () => Promise.resolve({}),
   };
 
   onShouldStartLoadWithRequest(req) {
-    const { callbackToWebpage, handleDeepLink, onShouldStartLoadWithRequest } = this.props;
+    const { callbackToWebpage, onWebRequest, onShouldStartLoadWithRequest } = this.props;
     const { url } = req || {};
     if (!url) {
       return false;
@@ -34,24 +33,22 @@ export default WrappedWebView => class extends React.Component {
     if (httpx.test(url)) {
       if ((host === 'itunes.apple.com' && idStr.test(path)) || host === 'a.app.qq.com') {
         Linking.openURL(url);
-        callbackToWebpage(url, { code: 0 });
         return false;
       }
 
       return true;
     }
 
+    const callbackName = query.callback_name;
     if (scheme === 'mobile') {
-      Promise.resolve(handleDeepLink({ scheme, method: host, query }))
+      Promise.resolve(onWebRequest({ scheme, method: host, query }))
         .then((resp) => {
-          try {
-            callbackToWebpage(url, resp);
-          } catch (e) {
-            console.error(e);
-          }
+          if (!callbackName) return;
+          callbackToWebpage(callbackName, resp);
         })
         .catch((e) => {
-          callbackToWebpage(url, e);
+          if (!callbackName) return;
+          callbackToWebpage(callbackName, e);
         });
       return false;
     }
