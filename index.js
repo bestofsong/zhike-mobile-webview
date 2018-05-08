@@ -7,7 +7,7 @@ import withQuery from './withQuery';
 
 class WebViewWithRef extends React.Component {
   static propTypes = {
-    getWebView: PropTypes.string.isRequired,
+    getWebView: PropTypes.func.isRequired,
     query: PropTypes.shape({
       token: PropTypes.string,
       userId: PropTypes.oneOfType(PropTypes.string, PropTypes.number),
