@@ -28,9 +28,13 @@ class WebViewWithRef extends React.Component {
   };
 
   render() {
+    const { url, ...passProps } = this.props;
+    if (url) {
+      console.log('should not pass url to WebView');
+    }
     return (
       <WebView
-        {...this.props}
+        {...passProps}
         ref={ref => this.props.getWebView(ref)}
       />
     );
