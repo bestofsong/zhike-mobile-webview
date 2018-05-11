@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 
 // note: line 11, cannot assign function expression to window directly in one expression
@@ -173,7 +174,10 @@ export default WrappedWebView => class extends React.Component {
       return;
     }
     const { callbackName, body } = req;
-    Promise.resolve(onWebRequest(body || {}))
+    if (_.isEmpty(body)) {
+      return;
+    }
+    Promise.resolve(onWebRequest(body))
       .catch(e => e)
       .then((resp) => {
         if (!callbackName) return;
