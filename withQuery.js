@@ -2,7 +2,7 @@ import React from 'react';
 import URI from 'urijs';
 
 function isValidValue(v) {
-  return v !== null && v !== undefined;
+  return v !== undefined;
 }
 
 function setQuery(obj, name, value) {

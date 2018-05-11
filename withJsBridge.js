@@ -28,13 +28,11 @@ import PropTypes from 'prop-types';
 //     var method = methods && methods[callbackName];
 //     if (typeof method === 'function') {
 //       method(paramsJson);
-//       delete methods[callbackName]
 //     }
 //
 //     var method2 = window[callbackName];
 //     if (typeof method2 === 'function') {
 //       method2(paramsJson);
-//       delete window[callbackName]
 //     }
 //
 //     var method3 = window.SS_PROMISE_SUPPORT_CALLBACKS && window.SS_PROMISE_SUPPORT_CALLBACKS[callbackName];
@@ -89,10 +87,10 @@ import PropTypes from 'prop-types';
 //   window.postMessageAsync = postMessageAsync;
 // })();
 // `;
-//
+
 
 function injectedJsCode() {
-  return `(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&(k(i),delete j[h]);var l=window[h];'function'==typeof l&&(l(i),delete window[h]);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(f){var g=0|16*Math.random(),h='x'==f?g:8|3&g;return h.toString(16)})}function d(f,g,h){var i=b(),j=new Promise(function(k,l){window.SS_PROMISE_SUPPORT_CALLBACKS[i]=function(n){var o;try{o=JSON.parse(n),o&&0===o.code?k(o):l(o)}catch(p){l(p)}}});return window.postMessage('id'+i+'id'+f,g,h),j}window.SS_PROMISE_SUPPORT_CALLBACKS||(window.SS_PROMISE_SUPPORT_CALLBACKS={},d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d)}();`;
+  return `'use strict';(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&k(i);var l=window[h];'function'==typeof l&&l(i);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(f){var g=0|16*Math.random(),h='x'==f?g:8|3&g;return h.toString(16)})}function d(f,g,h){var i=b(),j=new Promise(function(k,l){window.SS_PROMISE_SUPPORT_CALLBACKS[i]=function(n){var o;try{o=JSON.parse(n),o&&0===o.code?k(o):l(o)}catch(p){l(p)}}});return window.postMessage('id'+i+'id'+f,g,h),j}window.SS_PROMISE_SUPPORT_CALLBACKS||(window.SS_PROMISE_SUPPORT_CALLBACKS={},d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d)}();`;
 }
 
 
@@ -144,6 +142,13 @@ export default WrappedWebView => class extends React.Component {
     };
   }
 
+  constructor(props) {
+    super(props);
+    const { getUtilities } = props;
+    this.callbackToWebpage = this.callbackToWebpage.bind(this);
+    getUtilities({ callbackToWebpage: this.callbackToWebpage });
+  }
+
   callbackToWebpage(callbackName, data) {
     if (!this.webView) {
       console.error('no webView?');
@@ -151,7 +156,6 @@ export default WrappedWebView => class extends React.Component {
     }
 
     if (!callbackName) {
-      console.error('no callbackName, cannot callback');
       return;
     }
     this.webView.postMessage(`${callbackName}:${JSON.stringify(data)}`);
@@ -169,7 +173,7 @@ export default WrappedWebView => class extends React.Component {
       return;
     }
     const { callbackName, body } = req;
-    Promise.resolve(onWebRequest(body))
+    Promise.resolve(onWebRequest(body || {}))
       .catch(e => e)
       .then((resp) => {
         if (!callbackName) return;

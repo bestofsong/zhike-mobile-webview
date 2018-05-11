@@ -39,15 +39,17 @@ export default WrappedWebView => class extends React.Component {
       return true;
     }
 
-    const callbackName = query.callback_name;
+    const { isSetCallback, callback_name: callbackName } = query;
     if (scheme === 'mobile') {
       Promise.resolve(onWebRequest({ scheme, method: host, query }))
         .then((resp) => {
           if (!callbackName) return;
+          if (isSetCallback) return;
           callbackToWebpage(callbackName, resp);
         })
         .catch((e) => {
           if (!callbackName) return;
+          if (isSetCallback) return;
           callbackToWebpage(callbackName, e);
         });
       return false;
