@@ -134,7 +134,7 @@ export default WrappedWebView => class extends React.Component {
     try {
       body = JSON.parse(bodyStr);
     } catch (e) {
-      console.error('json parse e: ', e);
+      console.log('json parse msg(%s) e: ', msg, e);
       return null;
     }
 
