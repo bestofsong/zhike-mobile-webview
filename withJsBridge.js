@@ -148,7 +148,9 @@ export default WrappedWebView => class extends React.Component {
     super(props);
     const { getUtilities } = props;
     this.callbackToWebpage = this.callbackToWebpage.bind(this);
-    getUtilities({ callbackToWebpage: this.callbackToWebpage });
+    if (getUtilities) {
+      getUtilities({ callbackToWebpage: this.callbackToWebpage });
+    }
   }
 
   callbackToWebpage(callbackName, data) {
