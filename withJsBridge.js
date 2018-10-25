@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 //   if (window.messageHandler) {
 //     return;
 //   }
-
 //   function messageHandler(e) {
 //     var msg = e.data;
 //     if (typeof msg !== 'string' || !msg.length) {
@@ -30,12 +29,10 @@ import PropTypes from 'prop-types';
 //     if (typeof method === 'function') {
 //       method(paramsJson);
 //     }
-
 //     var method2 = window[callbackName];
 //     if (typeof method2 === 'function') {
 //       method2(paramsJson);
 //     }
-
 //     var method3 = window.SS_PROMISE_SUPPORT_CALLBACKS && window.SS_PROMISE_SUPPORT_CALLBACKS[callbackName];
 //     if (typeof method3 === 'function') {
 //       method3(paramsJson);
@@ -61,10 +58,11 @@ import PropTypes from 'prop-types';
 //       return v.toString(16);
 //     });
 //   }
-
 //   function postMessageAsync(message, targetOrigin, transfer){
 //     var uuid = uuidv4();
+//     var reject
 //     var ret = new Promise((resolve, reject) => {
+//       reject = reject
 //       window.SS_PROMISE_SUPPORT_CALLBACKS[uuid] = function uuidCallback(bodyJson) {
 //         var body;
 //         try {
@@ -79,6 +77,15 @@ import PropTypes from 'prop-types';
 //         }
 //       };
 //     });
+//     if (message === undefined) {
+//       message = null;
+//     }
+//     try {
+//       message = JSON.stringify(message);
+//     } catch (e) {
+//       reject({ code: -1, msg: 'postMessage(message): cannot JSON.stringify message' });
+//       return ret;
+//     }
 //     window.postMessage('id' + uuid + 'id' + message, targetOrigin, transfer);
 //     return ret;
 //   };
@@ -92,7 +99,7 @@ import PropTypes from 'prop-types';
 
 
 function injectedJsCode() {
-  return `'use strict';(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&k(i);var l=window[h];'function'==typeof l&&l(i);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(f){var g=0|16*Math.random(),h='x'==f?g:8|3&g;return h.toString(16)})}function d(f,g,h){var i=b(),j=new Promise(function(k,l){window.SS_PROMISE_SUPPORT_CALLBACKS[i]=function(n){var o;try{o=JSON.parse(n),o&&0===o.code?k(o):l(o)}catch(p){l(p)}}});return window.postMessage('id'+i+'id'+f,g,h),j}window.SS_PROMISE_SUPPORT_CALLBACKS||(window.SS_PROMISE_SUPPORT_CALLBACKS={},d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d,window.postMessage=d)}();`
+  return `'use strict';(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&k(i);var l=window[h];'function'==typeof l&&l(i);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(f){var g=0|16*Math.random(),h='x'==f?g:8|3&g;return h.toString(16)})}function d(f,g,h){var j,i=b(),k=new Promise(function(l,m){m=m,window.SS_PROMISE_SUPPORT_CALLBACKS[i]=function(o){var p;try{p=JSON.parse(o),p&&0===p.code?l(p):m(p)}catch(q){m(q)}}});void 0===f&&(f=null);try{f=JSON.stringify(f)}catch(l){return j({code:-1,msg:'postMessage(message): cannot JSON.stringify message'}),k}return window.postMessage('id'+i+'id'+f,g,h),k}window.SS_PROMISE_SUPPORT_CALLBACKS||(window.SS_PROMISE_SUPPORT_CALLBACKS={},d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d,window.postMessage=d)}();`
 }
 
 
