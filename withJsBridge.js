@@ -58,9 +58,10 @@ import PropTypes from 'prop-types';
 //       return v.toString(16);
 //     });
 //   }
+//   var postMessageOrig = window.postMessage;
 //   function postMessageAsync(message, targetOrigin, transfer){
 //     var uuid = uuidv4();
-//     var reject
+//     var reject;
 //     var ret = new Promise((resolve, reject) => {
 //       reject = reject
 //       window.SS_PROMISE_SUPPORT_CALLBACKS[uuid] = function uuidCallback(bodyJson) {
@@ -86,7 +87,8 @@ import PropTypes from 'prop-types';
 //       reject({ code: -1, msg: 'postMessage(message): cannot JSON.stringify message' });
 //       return ret;
 //     }
-//     window.postMessage('id' + uuid + 'id' + message, targetOrigin, transfer);
+//     var msg = 'id' + uuid + 'id' + message;
+//     postMessageOrig.call(window, msg, targetOrigin, transfer);
 //     return ret;
 //   };
 //   postMessageAsync.toString = function() {
@@ -99,7 +101,7 @@ import PropTypes from 'prop-types';
 
 
 function injectedJsCode() {
-  return `'use strict';(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&k(i);var l=window[h];'function'==typeof l&&l(i);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(f){var g=0|16*Math.random(),h='x'==f?g:8|3&g;return h.toString(16)})}function d(f,g,h){var j,i=b(),k=new Promise(function(l,m){m=m,window.SS_PROMISE_SUPPORT_CALLBACKS[i]=function(o){var p;try{p=JSON.parse(o),p&&0===p.code?l(p):m(p)}catch(q){m(q)}}});void 0===f&&(f=null);try{f=JSON.stringify(f)}catch(l){return j({code:-1,msg:'postMessage(message): cannot JSON.stringify message'}),k}return window.postMessage('id'+i+'id'+f,g,h),k}window.SS_PROMISE_SUPPORT_CALLBACKS||(window.SS_PROMISE_SUPPORT_CALLBACKS={},d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d,window.postMessage=d)}();`
+  return `'use strict';(function(){window.messageHandler||(window.messageHandler=function(d){var f=d.data;if('string'==typeof f&&f.length){var g=f.indexOf(':');if(-1!==g){var h=f.substr(0,g);if('string'==typeof h&&h.length){var i=f.substr(g+1);if('string'==typeof i&&i.length){var j=window.__ZHIKE_CALLBACKS__,k=j&&j[h];'function'==typeof k&&k(i);var l=window[h];'function'==typeof l&&l(i);var m=window.SS_PROMISE_SUPPORT_CALLBACKS&&window.SS_PROMISE_SUPPORT_CALLBACKS[h];'function'==typeof m&&(m(i),delete window.SS_PROMISE_SUPPORT_CALLBACKS[h])}}}}},document.addEventListener('message',window.messageHandler))})(),function(){var b=window.postMessage,d=function(g,h,i){b(g,h,i)};d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessage')},window.postMessage=d}(),function(){function b(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(g){var h=0|16*Math.random(),i='x'==g?h:8|3&h;return i.toString(16)})}function d(g,h,i){var k,j=b(),l=new Promise(function(n,o){o=o,window.SS_PROMISE_SUPPORT_CALLBACKS[j]=function(q){var s;try{s=JSON.parse(q),s&&0===s.code?n(s):o(s)}catch(t){o(t)}}});void 0===g&&(g=null);try{g=JSON.stringify(g)}catch(n){return k({code:-1,msg:'postMessage(message): cannot JSON.stringify message'}),l}var m='id'+j+'id'+g;return f.call(window,m,h,i),l}if(!window.SS_PROMISE_SUPPORT_CALLBACKS){window.SS_PROMISE_SUPPORT_CALLBACKS={};var f=window.postMessage;d.toString=function(){return(Object.hasOwnProperty+'').replace('hasOwnProperty','postMessageAsync')},window.postMessageAsync=d,window.postMessage=d}}();`;
 }
 
 
@@ -185,9 +187,6 @@ export default WrappedWebView => class extends React.Component {
       return;
     }
     const { callbackName, body } = req;
-    if (_.isEmpty(body)) {
-      return;
-    }
     Promise.resolve(onWebRequest(body))
       .catch(e => e)
       .then((resp) => {
