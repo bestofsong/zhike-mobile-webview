@@ -70,8 +70,8 @@ export const withExtra = (...hocs) => {
   return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WebViewWithRef);
 };
 
-export const WrapWebView = ({ OriginWebView = null, hocs = [] }) => {
-  const WrappedWebView = OriginWebView ? wrapWebView(OriginWebView) : WebViewWithRef;
+export const createWebView = ({ originWebView = null, hocs = [] }) => {
+  const WrappedWebView = originWebView ? wrapWebView(originWebView) : WebViewWithRef;
   return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WrappedWebView);
 };
 
