@@ -1,0 +1,21 @@
+language: minimal
+stages:
+- test
+- deploy
+jobs:
+  include:
+  - stage: test
+    install: 'echo stage: test, active: install'
+    script: 'echo stage: test, active: script'
+  - stage: deploy
+    install: skip
+    script: skip
+    name: call_auto_publish_sh
+    deploy:
+      provider: script
+      script: "./bin/auto_publish.sh"
+      on:
+        branch: master
+env:
+  global:
+    secure: PHXezPX0RzcSbktwxtnXrT5r0rNFYo5SpVRlnYOq1k622zD+8CJtkR/lmMJUv3lHPq07SiL5mi7zkT94DYybo3J5tIdggNSm0MDxjHLj0v8kz9BeBzeCz7UOLp8M8hgW7s7+su7YAWcj9Ymf11eSvOZUn6//0JZz3Q7jmf0p8FOFXuE4zBiTqz+D5Ae/EQASMSUdzc9mlC3Ngf2c4Ilo+HtQD+sf/jmD+JL0MOlmbWG3zj7WnicnbQJtdzjTtAbA5HcLRTabS+ifydx22/ppqTsUlGNNM/CUG7vZ2XHXSvBqoAyfq0U7+FW93dE7DwFLcDzrVWvh0lgNG4nwLTjaGw7fZKR3VmdUu7Toxae+5xutW80iFnPQjG1SzjvqwEJZCmyzc241eRxGNCOMsBIuwdWlJqgN9g0nssj40GzblJMk0ChbPLsuFCqFLQGyAfUNhp7/P7JCvo3CzQfO0CxC/ZQzmV0eJzf6YH+zqp+kejBK3Q38y4YHAHLMeUoBDRt8suor/LImwIiL8bGciNy4/brJCqfu6s4rNZsUkMoo9RZAn9CsNOxAlBWdV3DbAvsLyWIn8ETEG8riETdQxPRj/vAotEHrAQDvrI354WMBCSsVPzxqNTJhcQvadbDHvkrka0H41zKYN7pJqbRBFbseBD6bJWtM5KiCjMOxs0o7sek=
