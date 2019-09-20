@@ -4,7 +4,7 @@
   "description": "webview with several hocs customizing link handling",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "true"
   },
   "dependencies": {
     "prop-types": "^15.0.0",

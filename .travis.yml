@@ -1,23 +1,8 @@
 language: node_js
 node_js:
-  - 10
-stages:
-- test
-- deploy
-jobs:
-  include:
-  - stage: test
-    install: 'echo stage: test, active: install'
-    script: 'echo stage: test, active: script'
-  - stage: deploy
-    install: skip
-    script: skip
-    name: call_auto_publish_sh
-    deploy:
-      provider: script
-      script: "./bin/auto_publish.sh"
-      on:
-        branch: master
-env:
-  global:
-    secure: PHXezPX0RzcSbktwxtnXrT5r0rNFYo5SpVRlnYOq1k622zD+8CJtkR/lmMJUv3lHPq07SiL5mi7zkT94DYybo3J5tIdggNSm0MDxjHLj0v8kz9BeBzeCz7UOLp8M8hgW7s7+su7YAWcj9Ymf11eSvOZUn6//0JZz3Q7jmf0p8FOFXuE4zBiTqz+D5Ae/EQASMSUdzc9mlC3Ngf2c4Ilo+HtQD+sf/jmD+JL0MOlmbWG3zj7WnicnbQJtdzjTtAbA5HcLRTabS+ifydx22/ppqTsUlGNNM/CUG7vZ2XHXSvBqoAyfq0U7+FW93dE7DwFLcDzrVWvh0lgNG4nwLTjaGw7fZKR3VmdUu7Toxae+5xutW80iFnPQjG1SzjvqwEJZCmyzc241eRxGNCOMsBIuwdWlJqgN9g0nssj40GzblJMk0ChbPLsuFCqFLQGyAfUNhp7/P7JCvo3CzQfO0CxC/ZQzmV0eJzf6YH+zqp+kejBK3Q38y4YHAHLMeUoBDRt8suor/LImwIiL8bGciNy4/brJCqfu6s4rNZsUkMoo9RZAn9CsNOxAlBWdV3DbAvsLyWIn8ETEG8riETdQxPRj/vAotEHrAQDvrI354WMBCSsVPzxqNTJhcQvadbDHvkrka0H41zKYN7pJqbRBFbseBD6bJWtM5KiCjMOxs0o7sek=
+- 10
+deploy:
+  provider: npm
+  email: "betterofsong@gmail.com"
+  api_key:
+    secure: PtuHwjrOOGyoK+9N/kRKI8ValWeStPFIHKLZarBCeZ0gOMC96sHcejnBjx3O3cXRSFmc0LOdbLXB/iob/e79tlb4qzkEKJ4R7TWq7ZE3Qj8zMu+7LGPiy+S7c3HiO7WPrDViGy0/a1TNasUWo8NOh/RToWoS2DRcRe0WDzq6XoHJTtOc6NB5nN/NRg9E/60+0RyOpc0j/ETCcMQ8ZgUuzTJ1IM+8wMb6fmeX2N6RRGGUwaSDdxb7uDrDuVS/NAh5Jz9fgjGnpUO8WrRKjUyREROySZy3rdjElAEpkqawle/kWCW1Rr/Dz8f1ThpzxNj4V9rkdzaLXu0mohwJFewMvxI3CYYZ9LQ8yz7b6hpcnwFILKsN7cQpY0rkLWpAcnlR+G9y5QiFQXBjfrbDYgurXlCmC+N3Q7n+udJxyb+coRyMZ8QEG5m2UzSI8829+h4vjfxSUDENSBuGbWfGZGT/rF8QllLkCjhaLODC93nFb2FO2SW9gr5mfNl5PUwB5L5AqCMPyW0X1EZGi8yi1FudCHvcaT9xUpyxr8gdEPUPKxNZxbdiBvYxPLYLUZRng1KtW7UVIFUaomDeJIMsbGRcL+VzRhUnVy0jfNuGv2qRfAli2J7NGxeL3AtxmvFyUM/OakH92R+HAGRxw0GZ7dGgRmmh6UGcjZKh2YtQfM74soE=
