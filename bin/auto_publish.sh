@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 package_name=$(cat package.json | jq -r '.name')
 package_version=$(cat package.json | jq -r '.version')
@@ -12,4 +12,5 @@ fi
 echo "Will publish ${package_name}@${package_version}..."
 
 # need environmental variable NPM_TOKEN
+echo "NPM_TOKEN: ${NPM_TOKEN}"
 npm publish
