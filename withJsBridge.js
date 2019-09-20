@@ -3,6 +3,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 
 // note: line 11, cannot assign function expression to window directly in one expression
+// 接受原生通过postMessage向webpage发送的消息，并解析对应的格式，执行webpage设置的回调函数
 // const addMessageHandler = `(function addMessageHandler() {
 //   if (window.messageHandler) {
 //     return;
@@ -46,6 +47,9 @@ import PropTypes from 'prop-types';
 
 // const patchPostMessageJsCode = '(function patchPostMessageFunction(){var originalPostMessage=window.postMessage;var patchedPostMessage=function patchedPostMessage(message,targetOrigin,transfer){originalPostMessage(message,targetOrigin,transfer)};patchedPostMessage.toString=function(){return String(Object.hasOwnProperty).replace("hasOwnProperty","postMessage")};window.postMessage=patchedPostMessage})();';
 
+// 实现原理：包装window.postMessage，在SS_PROMISE_SUPPORT_CALLBACKS里面设置回调函数（key是随机的uuidv4），
+// 把key编码到原始的postMessage的payload，发给原生
+// 原生处理完执行webview.postMessage进行回调时携带uuid key，由上面的函数查找到上面提到的回调函数，resolve或reject，从而给webpage提供支持promise的api
 // const addPromisify = `(function addPromiseSupport() {
 //   if (window.SS_PROMISE_SUPPORT_CALLBACKS) {
 //     return;

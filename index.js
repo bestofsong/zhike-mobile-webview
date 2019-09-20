@@ -5,41 +5,47 @@ import withInterceptLink from './withInterceptLink';
 import withJsBridge from './withJsBridge';
 import withQuery from './withQuery';
 
-class WebViewWithRef extends React.Component {
-  static propTypes = {
-    getWebView: PropTypes.func.isRequired,
-    query: PropTypes.shape({
-      token: PropTypes.string,
-      userId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-      appName: PropTypes.string.isRequired,
-      appVersion: PropTypes.string.isRequired,
-      appType: PropTypes.string,
-    }),
-    onWebRequest: PropTypes.func.isRequired,
-    getUtilities: PropTypes.func,
-  };
+function wrapWebView (Wrapped) {
+  class WebViewWithRef extends React.Component {
+    static propTypes = {
+      getWebView: PropTypes.func.isRequired,
+      query: PropTypes.shape({
+        token: PropTypes.string,
+        userId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        appName: PropTypes.string.isRequired,
+        appVersion: PropTypes.string.isRequired,
+        appType: PropTypes.string,
+      }),
+      onWebRequest: PropTypes.func.isRequired,
+      getUtilities: PropTypes.func,
+    };
 
-  static defaultProps = {
-    query: {
-      token: '',
-      userId: '',
-      appType: Platform.select({ ios: 'iOS', android: 'Android' }),
-    },
-  };
+    static defaultProps = {
+      getWebView: () => {},
+      query: {
+        token: '',
+        userId: '',
+        appType: Platform.select({ ios: 'iOS', android: 'Android' }),
+      },
+    };
 
-  render() {
-    const { url, ...passProps } = this.props;
-    if (url) {
-      console.log('should not pass url to WebView');
+    render() {
+      const { url, ...passProps } = this.props;
+      if (url) {
+        console.log('should not pass url to WebView');
+      }
+      return (
+        <Wrapped
+          {...passProps}
+          ref={ref => this.props.getWebView(ref)}
+        />
+      );
     }
-    return (
-      <WebView
-        {...passProps}
-        ref={ref => this.props.getWebView(ref)}
-      />
-    );
   }
+  return WebViewWithRef;
 }
+
+const WebViewWithRef = wrapWebView(WebView);
 
 /* eslint-disable */
 const copyProps = WrappedWebView => class extends React.Component {
@@ -62,6 +68,11 @@ const baseHocs = [copyProps, withJsBridge, withQuery, withInterceptLink];
 
 export const withExtra = (...hocs) => {
   return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WebViewWithRef);
+};
+
+export const WrapWebView = ({ OriginWebView = null, hocs = [] }) => {
+  const WrappedWebView = OriginWebView ? wrapWebView(OriginWebView) : WebViewWithRef;
+  return baseHocs.concat(hocs).reduceRight((res, it) => it(res), WrappedWebView);
 };
 
 export default withExtra();
